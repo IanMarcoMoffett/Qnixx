@@ -6,6 +6,7 @@ include config.mk
 OBJECTS=sys/init.o 							\
 				sys/amd64/idt.o					\
 				sys/amd64/interrupts.o	\
+				sys/amd64/exceptions.o	\
 				sys/tty/console.o 			\
 				sys/libkern/string.o
 

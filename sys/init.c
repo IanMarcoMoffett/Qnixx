@@ -1,5 +1,6 @@
 #include <cdefs.h>
 #include <amd64/idt.h>
+#include <amd64/exceptions.h>
 #include <tty/console.h>
 
 /*
@@ -10,6 +11,7 @@ static void
 cpu_init(void)
 {
   load_idt();
+  init_exceptions();
 }
 
 __dead void
