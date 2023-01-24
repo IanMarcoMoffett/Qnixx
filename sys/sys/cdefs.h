@@ -6,6 +6,6 @@
 #define __aligned(n)  __attribute__((aligned(n)))
 #define __unused      __attribute__((unused))
 #define __packed      __attribute__((packed))
-
+#define __asm         __asm__ __volatile__
 
 #endif
