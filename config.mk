@@ -1,0 +1,14 @@
+CC=cross/bin/x86_64-elf-gcc
+LD=cross/bin/x86_64-elf-ld
+AS = as
+ASFLAGS =
+CFLAGS=-fexceptions --std=gnu11 -ffreestanding -fno-stack-protector -fno-pic \
+	-Werror=implicit -Werror=implicit-function-declaration \
+	-Werror=implicit-int -Werror=int-conversion \
+	-Werror=incompatible-pointer-types -Werror=int-to-pointer-cast \
+	-Werror=return-type -Wunused -mabi=sysv -mno-80387 -mno-mmx -mno-3dnow\
+	-mno-sse -mno-sse2 -mno-red-zone -mcmodel=kernel -pedantic \
+	-I sys/ -D_KERNEL -Wno-pointer-sign -ggdb
+
+QEMU_FLAGS = --enable-kvm -monitor stdio -cpu qemu64 -M q35 -m 256M -boot d \
+						 -smp 2
