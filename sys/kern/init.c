@@ -1,7 +1,10 @@
 #include <sys/cdefs.h>
 
-static void
-__dead start(void)
+__dead void
+_start(void)
 {
-  for (;;);
+  for (;;)
+  {
+    __asm("hlt");
+  }
 }
