@@ -9,7 +9,7 @@ static idtr_t idtr = {
 
 
 void 
-register_interrupt(uint8_t vector, void(*isr)(void* sf), uint8_t flags)
+idt_set_desc(uint8_t vector, void(*isr)(void* sf), uint8_t flags)
 {
   idt_gate_descriptor_t* desc = &idt[vector];
   uintptr_t addr = (uintptr_t)isr;

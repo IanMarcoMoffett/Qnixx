@@ -1,6 +1,10 @@
 #ifndef _AMD64_IDT_H_
 #define _AMD64_IDT_H_
 
+#define IDT_TRAP_GATE_FLAGS 0x8F
+#define IDT_INT_GATE_FLAGS  0x8E
+#define IDT_INT_GATE_USER   0xEE
+
 #include <cdefs.h>
 #include <types.h>
 
@@ -25,7 +29,7 @@ typedef struct
   uint64_t base;        /* Base address of the IDT */
 } __packed idtr_t;
 
-void register_interrupt(uint8_t vector, void(*isr)(void* sf), uint8_t flags);
+void idt_set_desc(uint8_t vector, void(*isr)(void* sf), uint8_t flags);
 void load_idt(void);
 
 #endif
