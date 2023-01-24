@@ -8,7 +8,6 @@
 #define KERN_DEBUG "\033[1;37m[ \033[1;35mDEBUG \033[1;37m] "
 
 /* TODO: Allow formatting strings */
-void printk(const char* str);
-
+void printk(const char* str, ...);
 
 #endif
