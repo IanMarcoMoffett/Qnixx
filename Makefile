@@ -3,7 +3,8 @@ all: stand/limine sbin/kernel.sys
 
 include config.mk
 
-OBJECTS=sys/kern/init.o
+OBJECTS=sys/init.o 				\
+				sys/amd64/idt.o
 
 ASMOBJS=
 

@@ -1,5 +1,5 @@
-#ifndef _SYS_CDEFS_H_
-#define _SYS_CDEFS_H_
+#ifndef _INCLUDE_CDEFS_H_
+#define _INCLUDE_CDEFS_H_
 
 
 #define __dead        __attribute__((noreturn))
