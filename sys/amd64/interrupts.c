@@ -1,3 +1,9 @@
+/*
+ *  Description: Interrupt module.
+ *  Author(s): Ian Marco Moffett.
+ *
+ */
+
 #include <amd64/interrupts.h>
 #include <amd64/idt.h>
 

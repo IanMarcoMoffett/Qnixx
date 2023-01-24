@@ -1,3 +1,9 @@
+/*
+ *  Description: Qnixx exception handlers.
+ *  Author(s): Ian Marco Moffett.
+ *
+ */
+
 #include <amd64/exceptions.h>
 #include <amd64/interrupts.h>
 #include <tty/console.h>

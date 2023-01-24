@@ -1,3 +1,8 @@
+/*
+ *  Description: Kernel init.
+ *  Author(s): Ian Marco Moffett.
+ */
+
 #include <cdefs.h>
 #include <amd64/idt.h>
 #include <amd64/exceptions.h>

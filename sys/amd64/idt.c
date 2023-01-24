@@ -1,5 +1,10 @@
-#include <amd64/idt.h>
+/*
+ *  Description: IDT helpers.
+ *  Author(s): Ian Marco Moffett.
+ *
+ */
 
+#include <amd64/idt.h>
 
 static idt_gate_descriptor_t idt[256];
 static idtr_t idtr = {
