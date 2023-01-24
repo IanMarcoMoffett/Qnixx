@@ -7,16 +7,24 @@
 #include <amd64/idt.h>
 #include <amd64/exceptions.h>
 #include <tty/console.h>
+#include <mm/pmm.h>
 
 /*
  *  Initialize CPU related stuff.
  */
 
 static void
+init_mm(void)
+{
+  pmm_init();
+}
+
+static void
 cpu_init(void)
 {
   load_idt();
   init_exceptions();
+  init_mm();
 }
 
 __dead void

@@ -7,8 +7,11 @@ OBJECTS=sys/kern_init.o 				\
 				sys/amd64/idt.o					\
 				sys/amd64/interrupts.o	\
 				sys/amd64/exceptions.o	\
+				sys/mm/pmm.o						\
+				sys/mm/vmm.o						\
 				sys/tty/console.o 			\
-				sys/libkern/string.o
+				sys/libkern/string.o		\
+				sys/libkern/bitmap.o
 
 ASMOBJS=
 
