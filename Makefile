@@ -3,7 +3,7 @@ all: stand/limine sbin/kernel.sys
 
 include config.mk
 
-OBJECTS=sys/init.o 							\
+OBJECTS=sys/kern_init.o 				\
 				sys/amd64/idt.o					\
 				sys/amd64/interrupts.o	\
 				sys/amd64/exceptions.o	\
