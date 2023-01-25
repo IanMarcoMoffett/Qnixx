@@ -13,4 +13,15 @@ uintptr_t __amd64_read_cr3(void);
  */
 void __amd64_load_cr3(uintptr_t val);
 
+/*
+ *  Reads an MSR.
+ */
+
+uint64_t __amd64_rdmsr(uint32_t msr);
+
+/*
+ *  Writes an MSR.
+ */
+uint64_t __amd64_wrmsr(uint32_t msr, uint64_t value);
+
 #endif
