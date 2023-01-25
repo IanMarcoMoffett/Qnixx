@@ -6,12 +6,9 @@
 #include <cdefs.h>
 #include <amd64/idt.h>
 #include <amd64/exceptions.h>
+#include <dev/video/fb.h>
 #include <tty/console.h>
 #include <mm/pmm.h>
-
-/*
- *  Initialize CPU related stuff.
- */
 
 static void
 init_mm(void)
@@ -20,7 +17,7 @@ init_mm(void)
 }
 
 static void
-cpu_init(void)
+init(void)
 {
   load_idt();
   init_exceptions();
@@ -30,8 +27,10 @@ cpu_init(void)
 __dead void
 _start(void)
 {
+  fb_init();
   printk(KERN_INFO "INIT: Booting..\n");
-  cpu_init();
+
+  init();
 
   for (;;)
   {

@@ -9,7 +9,9 @@ OBJECTS=sys/kern_init.o 				\
 				sys/amd64/exceptions.o	\
 				sys/mm/pmm.o						\
 				sys/mm/vmm.o						\
+				sys/dev/video/fb.o			\
 				sys/tty/console.o 			\
+				sys/tty/font.o 					\
 				sys/libkern/string.o		\
 				sys/libkern/bitmap.o
 
