@@ -7,6 +7,7 @@ OBJECTS=sys/kern_init.o 				\
 				sys/amd64/idt.o					\
 				sys/amd64/interrupts.o	\
 				sys/amd64/exceptions.o	\
+				sys/amd64/lapic.o				\
 				sys/amd64/io.o					\
 				sys/mm/pmm.o						\
 				sys/mm/vmm.o						\
