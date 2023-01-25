@@ -1,3 +1,8 @@
+/*
+ *  Description: Qnixx virtual memory manager.
+ *  Author(s): Ian Marco Moffett.
+ */
+
 #include <mm/vmm.h>
 #include <mm/pmm.h>
 #include <amd64/tlbflush.h>
