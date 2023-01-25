@@ -10,8 +10,9 @@ volatile struct limine_hhdm_request g_hhdm_request = {
   .revision = 0
 };
 
-static uintptr_t* get_next_level(uintptr_t* top_level, size_t index, 
-                                 uint8_t alloc)
+static uintptr_t*
+get_next_level(uintptr_t* top_level, size_t index, 
+               uint8_t alloc)
 {
   if (top_level[index] & PTE_PRESENT)
   {
@@ -32,8 +33,9 @@ static uintptr_t* get_next_level(uintptr_t* top_level, size_t index,
   return (uintptr_t*)(next_level + VMM_HIGHER_HALF);
 }
 
-static uintptr_t* get_page_table(uintptr_t* pml4, uintptr_t virt, 
-                                 uint8_t alloc)
+static uintptr_t*
+get_page_table(uintptr_t* pml4, uintptr_t virt, 
+               uint8_t alloc)
 {
   size_t pml4_index = (virt >> 39) & 0x1FF;
   size_t pdpt_index = (virt >> 30) & 0x1FF;
@@ -55,8 +57,9 @@ static uintptr_t* get_page_table(uintptr_t* pml4, uintptr_t virt,
   return pt;
 }
 
-void vmm_map_page(uintptr_t* pml4, uintptr_t virt, uintptr_t phys, 
-                  size_t flags)
+void
+vmm_map_page(uintptr_t* pml4, uintptr_t virt, uintptr_t phys, 
+             size_t flags)
 {
   uintptr_t* page_table = get_page_table(pml4, virt, 1);
   page_table[VIRT_TO_PT_INDEX(virt)] = phys | flags;
@@ -64,7 +67,8 @@ void vmm_map_page(uintptr_t* pml4, uintptr_t virt, uintptr_t phys,
 }
 
 
-void vmm_unmap_page(uintptr_t* pml4, uintptr_t virt)
+void
+vmm_unmap_page(uintptr_t* pml4, uintptr_t virt)
 {
   uintptr_t* page_table = get_page_table(pml4, virt, 0);
   if (page_table == NULL)
