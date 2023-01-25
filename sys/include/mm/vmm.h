@@ -1,6 +1,8 @@
 #ifndef _MM_VMM_H_
 #define _MM_VMM_H_
 
+#include <types.h>
+
 extern volatile struct limine_hhdm_request g_hhdm_request;
 
 
@@ -15,5 +17,26 @@ extern volatile struct limine_hhdm_request g_hhdm_request;
 
 #define VMM_HIGHER_HALF (g_hhdm_request.response->offset)
 
+/*
+ *  Maps a virtual address to
+ *  a physical address.
+ *
+ *  @param pml4: Pagemap level 4.
+ *  @param virt: Virtual address.
+ *  @param phys: Physical address.
+ *  @param flags: PTE flags.
+ */
+
+void vmm_map_page(uintptr_t* pml4, uintptr_t virt, uintptr_t phys, 
+                  size_t flags);
+
+/*
+ *  Unmaps a page.
+ *
+ *  @param pml4: Pagemap level 4.
+ *  @param virt: Virtual address.
+ */
+
+void vmm_unmap_page(uintptr_t* pml4, uintptr_t virt);
 
 #endif
