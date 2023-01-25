@@ -7,6 +7,7 @@ OBJECTS=sys/kern_init.o 				\
 				sys/amd64/idt.o					\
 				sys/amd64/interrupts.o	\
 				sys/amd64/exceptions.o	\
+				sys/amd64/io.o					\
 				sys/mm/pmm.o						\
 				sys/mm/vmm.o						\
 				sys/dev/video/fb.o			\
@@ -15,7 +16,8 @@ OBJECTS=sys/kern_init.o 				\
 				sys/libkern/string.o		\
 				sys/libkern/bitmap.o
 
-ASMOBJS=
+ASMOBJS=sys/amd64/asm.o 			\
+				sys/amd64/tlbflush.o
 
 sbin/kernel.sys: $(OBJECTS) $(ASMOBJS)
 	mkdir -p sbin/
