@@ -2,6 +2,7 @@
 #define _MM_VMM_H_
 
 #include <types.h>
+#include <limine.h>
 
 extern volatile struct limine_hhdm_request g_hhdm_request;
 
