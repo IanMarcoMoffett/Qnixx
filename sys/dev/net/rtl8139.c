@@ -313,6 +313,42 @@ isr(void* sf)
   lapic_send_eoi();
 }
 
+
+void
+rtl8139_send_packet(void* data, size_t size)
+{
+  if (iobase == 0)
+  {
+    return;
+  }
+
+  ssize_t hwbuf = -1;
+  for (uint32_t i = 0; i < TX_BUFFER_COUNT; ++i)
+  {
+    size_t canidate = (next_txbuf + i) % 4;
+    uint32_t status = __amd64_inl(PORT(REG_TXSTATUS0 + (canidate * 4)));
+
+    if (status & TX_STATUS_OWN)
+    {
+      hwbuf = canidate;
+      break;
+    }
+  }
+
+  next_txbuf = (hwbuf + 1) % 4;
+  if (size < 60)
+  {
+     size = 60;
+  }
+
+  /* Send the packet */
+  uint64_t phys_addr = txbufs[hwbuf];
+  uint64_t virt_addr = phys_addr + VMM_HIGHER_HALF; 
+  memzero((void*)(ALIGN_DOWN(virt_addr, 0x1000)), TX_BUFFER_SIZE - size);
+  memcpy((void*)(ALIGN_DOWN(virt_addr, 0x1000)), data, size);
+  __amd64_outl(PORT(REG_TXSTATUS0 + (hwbuf * 4)), size);
+}
+
 void
 rtl8139_init(void)
 {
