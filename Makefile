@@ -8,7 +8,9 @@ OBJECTS=sys/kern_init.o 				\
 				sys/amd64/interrupts.o	\
 				sys/amd64/exceptions.o	\
 				sys/amd64/lapic.o				\
+				sys/amd64/ioapic.o			\
 				sys/amd64/io.o					\
+				sys/acpi/acpi.o					\
 				sys/mm/pmm.o						\
 				sys/mm/vmm.o						\
 				sys/dev/video/fb.o			\
