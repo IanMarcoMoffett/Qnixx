@@ -16,6 +16,7 @@ OBJECTS=sys/kern_init.o 				\
 				sys/mm/pmm.o						\
 				sys/mm/vmm.o						\
 				sys/dev/video/fb.o			\
+				sys/dev/pci/pci.o				\
 				sys/tty/console.o 			\
 				sys/tty/font.o 					\
 				sys/libkern/string.o		\
