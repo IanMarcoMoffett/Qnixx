@@ -126,7 +126,7 @@ lapic_init(void)
 {
   x2apic_supported = supports_x2apic();
 
-  if (!(supports_x2apic))
+  if (x2apic_supported)
   {
     xapic_base = __amd64_rdmsr(IA32_APIC) & 0xFFFFF000;
   }
