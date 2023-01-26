@@ -1,5 +1,11 @@
+/*
+ *  Description: UHCI Host controller driver.
+ *  Author(s): Ian Marco Moffett.
+ */
+
 #include <dev/usb/uhci.h>
 #include <dev/pci/pci.h>
+#include <dev/timer/hpet.h>
 #include <tty/console.h>
 #include <amd64/io.h>
 #include <mm/heap.h>
@@ -16,14 +22,31 @@
 #define FRNUM           0x06
 #define FLBASEADD       0x08
 #define LEGSUP          0xC0
+#define PORT1           0x10
 
+/* Constants */
 #define MAX_QH          8
 #define MAX_TD          32
 
-#define TD_PTR_TERMINATE (1 << 0)
-#define TD_PTR_QH        (1 << 1)
+/* Flags */
+#define TD_PTR_TERMINATE        (1 << 0)
+#define TD_PTR_QH               (1 << 1)
 
-#define CMD_RS           (1 << 0)
+#define CMD_RS                  (1 << 0)
+#define PORT_CONNECTION         (1 << 0)
+#define PORT_CONNECTION_CHANGE  (1 << 1)
+#define PORT_ENABLE_CHANGE      (1 << 3)
+#define PORT_RESET              (1 << 9)
+#define PORT_ENABLE             (1 << 2)
+#define PORT_LS                 (3 << 4)    /* Line Status */
+#define PORT_RD                 (1 << 6)    /* Resume Detect */
+#define PORT_LSDA               (1 << 8)    /* Low Speed Device Attached */
+#define PORT_RWC                (PORT_CONNECTION_CHANGE | PORT_ENABLE_CHANGE)
+
+#define USB_LOW_SPEED     (1 << 0)
+#define USB_FULL_SPEED    (1 << 1)
+
+#define MAX_PORTS 10
 
 static pci_device_t* dev = NULL;
 static uhci_controller_t* hc = NULL;
@@ -43,6 +66,59 @@ alloc_qh(uhci_controller_t* hc)
   }
 
   return NULL;
+}
+
+static inline void
+port_writew(uint32_t port, uint16_t word)
+{
+  uint32_t status = __amd64_inw(port);
+  status |= word;
+  status &= ~(PORT_RWC);
+  __amd64_outl(port, status);
+}
+
+static inline void
+port_clearw(uint32_t port, uint16_t word)
+{
+  uint32_t status = __amd64_inw(port);
+  status &= ~(PORT_RWC);
+  status &= ~(word);
+  status |= PORT_RWC & word;
+  __amd64_outl(port, status);
+}
+
+
+/*
+ *  Returns port count < MAX_PORTS.
+ */
+
+static size_t
+get_port_count(uhci_controller_t* hc)
+{
+  /*
+   *  The UHCI spec says devices must have 2
+   *  ports and you can't find how many there
+   *  are. However if you look through the spec
+   *  you'll see that bit 7 of the port status and
+   *  control register is always set to 1 so you can
+   *  check that. You also need to ensure 
+   *  the register does not
+   *  return all 1s (is nonexistant).
+   */
+  
+  size_t port_count = 0;
+  for (uint32_t port = 0; port < MAX_PORTS; ++port)
+  {
+    uint32_t status = __amd64_inw(hc->iobase + (PORT1 + (port * 2)));
+    if (!(status & (1 << 7)) || status == 0xFFFF)
+    {
+      break;
+    }
+
+    ++port_count;
+  }
+
+  return port_count;
 }
 
 void
@@ -97,4 +173,6 @@ uhci_init(void)
 
   /* Enable the controller */
   __amd64_outw(hc->iobase + USBCMD, CMD_RS);
+
+  printk(KERN_INFO "System has %d ports.\n", get_port_count(hc));
 }
