@@ -18,7 +18,8 @@ static volatile struct limine_rsdp_request rsdp_req = {
 static acpi_rsdt_t* rsdt = NULL;
 static size_t rsdt_entry_count = 0;
 
-static uint8_t do_checksum(const acpi_header_t* header) 
+static uint8_t
+do_checksum(const acpi_header_t* header) 
 {
   uint8_t sum = 0;
 
@@ -30,7 +31,8 @@ static uint8_t do_checksum(const acpi_header_t* header)
   return sum % 0x100 == 0;
 }
 
-void* acpi_query(const char* query)
+void*
+acpi_query(const char* query)
 { 
   for (size_t i = 0; i < rsdt_entry_count; ++i)
   {
@@ -45,7 +47,8 @@ void* acpi_query(const char* query)
 }
 
 
-void acpi_init(void)
+void
+acpi_init(void)
 {
   /* Fetch the RSDP */
   acpi_rsdp_t* rsdp = rsdp_req.response->address;
