@@ -5,8 +5,8 @@
 #define ALIGN_UP(address, align)    (((address) + (align)-1) & ~((align)-1))
 #define DIVIDE(a, b) ((a * b) == 0 ? 0 : a / b)
 #define BIG_ENDIAN(v) ((((v) & 0xFF) << 8) | (((v) >> 8) & 0xFF))
-#define COMBINE_DWORD(dword_low, dword_high) (\
-    (((uint64_t)dword_high << 32) | dword_low)
+#define COMBINE_WORD(word_low, word_high) (\
+    (((uint64_t)word_high << 16) | word_low))
 
 #define IS_POWER_OF_2(x) ((x & (x-1)) == 0)
 #define OFF_BY(off, by) (~(off % ~(by)))

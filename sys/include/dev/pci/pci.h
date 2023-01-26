@@ -13,5 +13,6 @@ typedef struct
 } pci_device_t;
 
 void pci_enable_bus_mastering(pci_device_t* dev);
+pci_device_t* pci_find(uint32_t vendor_id, uint32_t device_id);
 
 #endif
