@@ -5,11 +5,15 @@
 
 #include <dev/net/rtl8139.h>
 #include <dev/pci/pci.h>
+#include <amd64/interrupts.h>
 #include <amd64/io.h>
+#include <amd64/lapic.h>
 #include <tty/console.h>
 #include <lib/math.h>
 #include <mm/vmm.h>
 #include <mm/heap.h>
+#include <string.h>
+#include <cdefs.h>
 
 #define VENDOR_ID 0x10EC
 #define DEVICE_ID 0x8139
@@ -128,10 +132,16 @@ static pci_device_t* dev = NULL;
 static uint32_t iobase = 0;
 static uint8_t* rxbuf = NULL;
 static uint8_t txbufs[TX_BUFFER_COUNT];
+static size_t next_txbuf = 0;
+static ssize_t rxbuf_offset = 0;
+static void* packet_buf = NULL;
 mac_address_t g_rtl8139_mac_addr;
 
-static void update_mac_addr(void) {
-  for (unsigned int i = 0; i < 6; ++i) {
+static void
+update_mac_addr(void)
+{
+  for (unsigned int i = 0; i < 6; ++i)
+  {
     g_rtl8139_mac_addr[i] = __amd64_inb(PORT(REG_MAC) + i);
   }
 }
@@ -141,7 +151,6 @@ link_up(void)
 {
   return ((__amd64_inb(iobase + REG_MSR) & MSR_LINKB) == 0);
 }
-
 
 static inline uint8_t
 get_speed(void)
@@ -233,7 +242,76 @@ startup_nic(void)
                               | INT_SYSTEM_ERROR);
 }
 
+/*
+ *  The receive path is a ring buffer.
+ *
+ *  Data coming in is first
+ *  stored in a receive FIFO in
+ *  the chip which then gets
+ *  moved to the receive buffer.
+ *
+ *  Status is the first word in the packet.
+ *  Length is the third word in the packet.
+ *
+ *  -- Ian.
+ */
 
+static void
+recieve(void)
+{
+  uint8_t* packet = rxbuf + rxbuf_offset;
+  uint16_t status = *(uint16_t*)packet;
+  uint16_t len    = *(uint16_t*)(packet + 2);
+  
+  uint8_t is_error = !(status & RX_OK)
+                     || (status & (RX_INVALID_SYMBOL_ERROR
+                                   | RX_CRC_ERROR
+                                   | RX_FRAME_ALIGNMENT_ERROR));
+
+  if (is_error || (len >= PACKET_SIZE_MAX) || (len < PACKET_SIZE_MIN))
+  {
+    return;
+  }
+
+  memcpy(packet_buf, (uint8_t*)(packet + 4), len - 4);
+  rxbuf_offset = ((rxbuf_offset + len + 4 + 3) & ~3) % RX_BUFFER_SIZE;
+
+  __amd64_outw(PORT(REG_CAPR), rxbuf_offset - 0x10);
+  rxbuf_offset %= RX_BUFFER_SIZE;
+}
+
+__isr static void
+isr(void* sf)
+{
+  for (;;)
+  {
+    uint16_t status = __amd64_inw(PORT(REG_ISR));
+    __amd64_outw(PORT(REG_ISR), status);
+
+    uint8_t stat = status & (INT_RXOK 
+                             | INT_RXERR 
+                             | INT_TXOK 
+                             | INT_TXERR 
+                             | INT_RX_BUFFER_OVERFLOW 
+                             | INT_LINK_CHANGE 
+                             | INT_RX_FIFO_OVERFLOW 
+                             | INT_LENGTH_CHANGE 
+                             | INT_SYSTEM_ERROR);
+    if (stat == 0)
+    {
+      break;
+    }
+
+    if (status & INT_RXOK)
+    {
+      /* We got a packet */
+      recieve();
+    }
+  }
+
+  __amd64_outw(PORT(REG_ISR), 0x5);
+  lapic_send_eoi();
+}
 
 void
 rtl8139_init(void)
@@ -267,6 +345,9 @@ rtl8139_init(void)
     printk(KERN_INFO "RTL8139: Link down..\n");
   }
 
+  /* Allocate a packet buffer */
+  packet_buf = kmalloc(PACKET_SIZE_MAX);
+
   /* Get the MAC address */
   update_mac_addr();
   printk(KERN_INFO "RTL8139: MAC address: %X:%X:%X:%X:%X:%X\n", 
@@ -276,4 +357,6 @@ rtl8139_init(void)
          g_rtl8139_mac_addr[3], 
          g_rtl8139_mac_addr[4], 
          g_rtl8139_mac_addr[5]);
+
+  register_irq(dev->irq_line, isr);
 }
