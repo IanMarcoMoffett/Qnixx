@@ -11,6 +11,8 @@
 #define VENDOR_ID 0x10EC
 #define DEVICE_ID 0x8139
 
+#define PORT(reg) (iobase + reg)
+
 // Packets
 #define PACKET_SIZE_MAX 0x600
 #define PACKET_SIZE_MIN 0x16
@@ -120,8 +122,32 @@
 #define RX_OK                    0x0001
 
 static pci_device_t* dev = NULL;
+static uint32_t iobase = 0;
 
-void rtl8139_init(void)
+static void
+startup_nic(void)
+{
+  /* Preform a software reset */
+  __amd64_outb(PORT(REG_COMMAND), CMD_RESET);
+  while (__amd64_inb(PORT(REG_COMMAND)) & CMD_RESET);
+
+  /* Put the NIC in config write enable */
+  __amd64_outb(PORT(REG_CFG9346), CFG9346_EEM0 | CFG9346_EEM1);
+
+  /* Enable multicast */
+  __amd64_outl(PORT(REG_MAR0), 0xFFFFFFFF);
+  __amd64_outl(PORT(REG_MAR4), 0xFFFFFFFF);
+  printk(KERN_INFO "RTL8139: Multicast enabled.\n");
+
+  /* Enable RX and TX */
+  __amd64_outb(PORT(REG_COMMAND), CMD_RX_ENABLE | CMD_TX_ENABLE);
+
+  /* Turn on the NIC */
+  __amd64_outb(iobase + REG_CONFIG1, 0);
+}
+
+void
+rtl8139_init(void)
 {
   dev = pci_find(VENDOR_ID, DEVICE_ID);
 
@@ -131,6 +157,15 @@ void rtl8139_init(void)
   }
   
   /* Found a device */
-  printk(KERN_INFO "Found RTL8139 card on PCI bus %d, slot %d\n",
+  printk(KERN_INFO "RTL8139: Found RTL8139 card on PCI bus %d, slot %d\n",
          dev->bus, dev->slot);
+
+  /* Enable bus mastering so the card can do DMA */
+  pci_enable_bus_mastering(dev);
+
+  /* Fetch the I/O base */
+  iobase = dev->bars[0] & 0xFFFFFFFC;
+
+  /* Startup the NIC */
+  startup_nic();
 }
