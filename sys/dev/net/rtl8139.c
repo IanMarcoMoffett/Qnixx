@@ -128,6 +128,13 @@ static pci_device_t* dev = NULL;
 static uint32_t iobase = 0;
 static uint8_t* rxbuf = NULL;
 static uint8_t txbufs[TX_BUFFER_COUNT];
+mac_address_t g_rtl8139_mac_addr;
+
+static void update_mac_addr(void) {
+  for (unsigned int i = 0; i < 6; ++i) {
+    g_rtl8139_mac_addr[i] = __amd64_inb(PORT(REG_MAC) + i);
+  }
+}
 
 static inline uint8_t
 link_up(void)
@@ -259,4 +266,14 @@ rtl8139_init(void)
   {
     printk(KERN_INFO "RTL8139: Link down..\n");
   }
+
+  /* Get the MAC address */
+  update_mac_addr();
+  printk(KERN_INFO "RTL8139: MAC address: %X:%X:%X:%X:%X:%X\n", 
+         g_rtl8139_mac_addr[0], 
+         g_rtl8139_mac_addr[1], 
+         g_rtl8139_mac_addr[2], 
+         g_rtl8139_mac_addr[3], 
+         g_rtl8139_mac_addr[4], 
+         g_rtl8139_mac_addr[5]);
 }
