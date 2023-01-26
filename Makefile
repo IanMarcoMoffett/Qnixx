@@ -11,6 +11,7 @@ OBJECTS=sys/kern_init.o 				\
 				sys/amd64/ioapic.o			\
 				sys/amd64/cpu.o					\
 				sys/amd64/io.o					\
+				sys/amd64/gdt.o					\
 				sys/acpi/acpi.o					\
 				sys/sync/mutex.o				\
 				sys/mm/pmm.o						\

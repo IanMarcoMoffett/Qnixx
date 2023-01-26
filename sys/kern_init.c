@@ -9,6 +9,7 @@
 #include <amd64/lapic.h>
 #include <amd64/ioapic.h>
 #include <amd64/cpu.h>
+#include <amd64/gdt.h>
 #include <dev/video/fb.h>
 #include <tty/console.h>
 #include <mm/pmm.h>
@@ -27,6 +28,7 @@ init(void)
 {
   load_idt();
   init_exceptions();
+  load_gdt_bsp();
 
   if (__amd64_enable_sse() == 0)
   {
