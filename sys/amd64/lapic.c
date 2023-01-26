@@ -11,9 +11,13 @@
 
 #define is_on_bsp() (__amd64_rdmsr(IA32_APIC) & (1 << 8))
 
-#define IA32_APIC 0x1B
-#define IA32_X2APIC_BASE 0x800
-#define LAPIC_SVR 0x0F0
+#define IA32_APIC         0x1B
+#define IA32_X2APIC_BASE  0x800
+#define LAPIC_SVR         0x0F0
+#define LAPIC_ICR0        0x300
+#define LAPIC_ICR1        0x310
+#define LAPIC_SELF_IPI    0x3F0
+#define IPI_LEVEL_ASSERT  (1 << 14)
 
 static uintptr_t xapic_base = 0;
 static uint8_t x2apic_supported = 0;
@@ -76,6 +80,36 @@ enable_apic(void)
   if (is_on_bsp())
   {
     printk(KERN_INFO "BSP: Local APIC enabled.\n");
+  }
+}
+
+
+void
+lapic_send_ipi(uint8_t lapic_id, uint8_t vector, uint8_t shorthand)
+{
+  uint32_t icr_low = 0;
+  if (shorthand == LAPIC_SELF && x2apic_supported)
+  {
+    /* Try to use x2APIC SELF MSR */
+    xapic_write(LAPIC_SELF_IPI, vector);
+    return;
+  }
+    
+  /* Encode vector and some other values into icr_low */
+  icr_low |= vector;
+  icr_low |= IPI_LEVEL_ASSERT;
+  icr_low |= (shorthand << 18);
+  
+  /* Send the IPI */
+  if (x2apic_supported)
+  {
+    xapic_write(LAPIC_ICR0, ((uint64_t)lapic_id << 32) | icr_low);
+  }
+  else
+  {
+    xapic_write(LAPIC_ICR1, ((uint32_t)lapic_id << 24));
+    xapic_write(LAPIC_ICR0, icr_low);
+    while (xapic_read(LAPIC_ICR0) & (1 << 12));
   }
 }
 
