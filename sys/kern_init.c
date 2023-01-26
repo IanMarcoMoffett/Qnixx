@@ -11,6 +11,7 @@
 #include <amd64/cpu.h>
 #include <amd64/gdt.h>
 #include <dev/video/fb.h>
+#include <dev/timer/hpet.h>
 #include <tty/console.h>
 #include <mm/pmm.h>
 #include <mm/heap.h>
@@ -48,6 +49,7 @@ init(void)
   heap_init();
   init_net();
   
+  hpet_init();
   init_usb();
 }
 
