@@ -18,7 +18,9 @@ OBJECTS=sys/kern_init.o 				\
 				sys/mm/tlsf.o						\
 				sys/mm/heap.o						\
 				sys/dev/video/fb.o			\
+				sys/dev/net/rtl8139.o		\
 				sys/dev/pci/pci.o				\
+				sys/dev/init.o					\
 				sys/tty/console.o 			\
 				sys/tty/font.o 					\
 				sys/libkern/string.o		\
@@ -44,7 +46,13 @@ sbin/kernel.sys: $(OBJECTS) $(ASMOBJS)
 	rm -rf iso_root
 
 run:
+	@echo "Creating tap..."
+	@sudo ip tuntap add dev tap0 mode tap user $(shell id -u)
+	@sudo ip address add $(LOCAL_IP) dev tap0
+	@sudo ip link set dev tap0 up
 	qemu-system-x86_64 $(QEMU_FLAGS) -cdrom Qnixx.iso
+	@echo "Removing tap..."
+	@sudo ip tuntap del dev tap0 mode tap
 
 stand/limine:
 	mkdir -p stand/

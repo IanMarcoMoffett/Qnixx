@@ -11,7 +11,9 @@
 #include <dev/video/fb.h>
 #include <tty/console.h>
 #include <mm/pmm.h>
+#include <mm/heap.h>
 #include <acpi/acpi.h>
+#include <dev/init.h>
 
 static void
 init_mm(void)
@@ -24,10 +26,15 @@ init(void)
 {
   load_idt();
   init_exceptions();
+
   init_mm();
   acpi_init();
+
   ioapic_init();
   lapic_init();
+  
+  heap_init();
+  init_net();
 }
 
 __dead void

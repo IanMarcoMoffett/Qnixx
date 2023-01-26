@@ -1,3 +1,4 @@
+LOCAL_IP=192.168.1.152
 CC=cross/bin/x86_64-elf-gcc
 LD=cross/bin/x86_64-elf-ld
 AS = as
@@ -11,4 +12,5 @@ CFLAGS=-fexceptions --std=gnu11 -ffreestanding -fno-stack-protector -fno-pic \
 	-I sys/include/ -D_KERNEL -Wno-pointer-sign -ggdb
 
 QEMU_FLAGS = --enable-kvm -monitor stdio -cpu qemu64 -M q35 -m 256M -boot d \
-						 -smp 2
+						 -smp 2 -netdev tap,id=br0,ifname=tap0,script=no,downscript=no \
+						 -device rtl8139,netdev=br0,mac=52:55:00:d1:55:01
