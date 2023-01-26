@@ -48,4 +48,29 @@ void vmm_unmap_page(uintptr_t* pml4, uintptr_t virt);
 
 void* vmm_alloc_pages(size_t pages);
 
+/*
+ *  NOTE: Do not use too often
+ *        as this is slow!!
+ *  
+ *  Returns physical address
+ *  from virtual address passed.
+ *
+ *  @param virt: Virtual address.
+ *
+ */
+
+uintptr_t vmm_get_phys(uintptr_t virt);
+
+/*
+ *  Returns current PML4.
+ */ 
+
+uintptr_t* vmm_get_pml4(void);
+
+/*
+ *  Makes PML4.
+ */
+
+uintptr_t* vmm_make_pml4(void);
+
 #endif

@@ -6,7 +6,10 @@
 #include <mm/vmm.h>
 #include <mm/pmm.h>
 #include <amd64/tlbflush.h>
+#include <amd64/asm.h>
 #include <limine.h>
+#include <string.h>
+#include <lib/math.h>
 
 #define VIRT_TO_PT_INDEX(virt) ((virt >> 12) & 0x1FF)
 
@@ -82,8 +85,47 @@ vmm_unmap_page(uintptr_t* pml4, uintptr_t virt)
   __amd64_flush_tlb_single(virt);
 }
 
-void* vmm_alloc_pages(size_t pages)
+void*
+vmm_alloc_pages(size_t pages)
 {
   uintptr_t ptr = pmm_alloc(pages);
   return (void*)(ptr + VMM_HIGHER_HALF);
+}
+
+uintptr_t*
+vmm_get_pml4(void)
+{
+  uintptr_t cr3_val = __amd64_read_cr3();
+  return (void*)(cr3_val + VMM_HIGHER_HALF);
+}
+
+
+uintptr_t*
+vmm_make_pml4(void)
+{
+  static uintptr_t* old_pml4 = NULL;
+
+  if (old_pml4 == NULL)
+  {
+    old_pml4 = vmm_get_pml4();
+  }
+
+  uintptr_t* new_pml4 = vmm_alloc_pages(1);
+  memzero(new_pml4, 512);
+
+  for (size_t i = 256; i < 512; ++i)
+  {
+    new_pml4[i] = old_pml4[i];
+  }
+
+  return new_pml4;
+}
+
+uintptr_t
+vmm_get_phys(uintptr_t virt)
+{
+  virt = ALIGN_DOWN(virt, 0x1000);
+  uintptr_t* page_table = get_page_table(vmm_get_pml4(), virt, 1);
+  uintptr_t pte_value = page_table[VIRT_TO_PT_INDEX(virt)];
+  return PTE_GET_ADDR(pte_value);
 }
