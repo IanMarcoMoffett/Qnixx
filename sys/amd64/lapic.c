@@ -18,6 +18,7 @@
 #define LAPIC_ICR0        0x300
 #define LAPIC_ICR1        0x310
 #define LAPIC_SELF_IPI    0x3F0
+#define LAPIC_EOI         0x0B0
 #define IPI_LEVEL_ASSERT  (1 << 14)
 
 static uintptr_t xapic_base = 0;
@@ -113,6 +114,13 @@ lapic_send_ipi(uint8_t lapic_id, uint8_t vector, uint8_t shorthand)
     xapic_write(LAPIC_ICR0, icr_low);
     while (xapic_read(LAPIC_ICR0) & (1 << 12));
   }
+}
+
+
+void
+lapic_send_eoi(void)
+{
+  xapic_write(LAPIC_EOI, 0);
 }
 
 uint8_t
