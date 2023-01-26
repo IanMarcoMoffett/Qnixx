@@ -6,6 +6,8 @@
 #define CONFIG_ADDRESS 0xCF8
 #define CONFIG_DATA 0xCFC
 
+#define STATUS_CAPLIST  (1 << 4)
+
 /*
  *  Read a word from the PCI configuration
  *  space.
@@ -74,6 +76,22 @@ read_subclass(uint8_t bus, uint8_t slot, uint8_t func)
   return config_readw(bus, slot, func, 0xA) & 0xFF;
 }
 
+static inline uint16_t
+read_status(uint8_t bus, uint8_t slot, uint8_t func)
+{
+  return config_readw(bus, slot, func, 0x6);
+}
+
+static inline uint8_t
+read_prog_if(uint8_t bus, uint8_t slot, uint8_t func) {
+  return config_readw(bus, slot, func, 0x8) >> 8;
+}
+
+static inline uint8_t
+read_cap_ptr(uint8_t bus, uint8_t slot, uint8_t func)
+{
+  return config_readw(bus, slot, func, 0x34);
+}
 
 static inline uint32_t
 get_bar0(uint8_t bus, uint8_t slot, uint8_t func) 
@@ -127,6 +145,7 @@ static inline void
 init_dev(pci_device_t* dev, uint8_t bus, uint8_t slot, uint8_t func)
 {
   dev->irq_line = read_irq_line(bus, slot, func);
+  dev->msi_cap = 0;
   dev->bars[0] = get_bar0(bus, slot, func);
   dev->bars[1] = get_bar1(bus, slot, func);
   dev->bars[2] = get_bar2(bus, slot, func);
@@ -138,12 +157,14 @@ init_dev(pci_device_t* dev, uint8_t bus, uint8_t slot, uint8_t func)
   dev->func = func;
 }
 
-void pci_enable_bus_mastering(pci_device_t* dev)
+void
+pci_enable_bus_mastering(pci_device_t* dev)
 {
   uint16_t val = config_readw(dev->bus, dev->slot, dev->func, 0x4);
   config_writew(dev->bus, dev->slot, dev->func, 0x4, (val | (1 << 2)
                                                           | (1 << 0)));
 }
+
 
 pci_device_t*
 pci_find(uint32_t vendor_id, uint32_t device_id)
@@ -166,6 +187,35 @@ pci_find(uint32_t vendor_id, uint32_t device_id)
     }
   }
   
+  kfree(dev);
+  return NULL;
+}
+
+
+pci_device_t*
+pci_find_any(uint8_t class_id, uint8_t subclass_id, int8_t interface)
+{
+  pci_device_t* dev = kmalloc(sizeof(pci_device_t));
+
+  for (uint8_t bus = 0; bus < 5; ++bus)
+  {
+    for (uint8_t slot = 0; slot < 32; ++slot)
+    {
+      for (uint8_t func = 0; func < 8; ++func)
+      {
+        if (read_class(bus, slot, func) == class_id
+            && read_subclass(bus, slot, func) == subclass_id)
+        {
+          if (read_prog_if(bus, slot, func) == interface && interface > -1)
+          {
+            init_dev(dev, bus, slot, func);
+            return dev;
+          }
+        }
+      }
+    }
+  }
+
   kfree(dev);
   return NULL;
 }

@@ -19,6 +19,7 @@ OBJECTS=sys/kern_init.o 				\
 				sys/mm/tlsf.o						\
 				sys/mm/heap.o						\
 				sys/dev/video/fb.o			\
+				sys/dev/usb/uhci.o			\
 				sys/dev/net/rtl8139.o		\
 				sys/dev/pci/pci.o				\
 				sys/dev/init.o					\

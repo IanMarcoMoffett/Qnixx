@@ -47,6 +47,8 @@ init(void)
   
   heap_init();
   init_net();
+  
+  init_usb();
 }
 
 __dead void
