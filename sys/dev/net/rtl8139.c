@@ -7,6 +7,9 @@
 #include <dev/pci/pci.h>
 #include <amd64/io.h>
 #include <tty/console.h>
+#include <lib/math.h>
+#include <mm/vmm.h>
+#include <mm/heap.h>
 
 #define VENDOR_ID 0x10EC
 #define DEVICE_ID 0x8139
@@ -123,6 +126,22 @@
 
 static pci_device_t* dev = NULL;
 static uint32_t iobase = 0;
+static uint8_t* rxbuf = NULL;
+static uint8_t txbufs[TX_BUFFER_COUNT];
+
+static inline uint8_t
+link_up(void)
+{
+  return ((__amd64_inb(iobase + REG_MSR) & MSR_LINKB) == 0);
+}
+
+
+static inline uint8_t
+get_speed(void)
+{
+  uint16_t msr = __amd64_inw(iobase + REG_MSR);
+  return msr & MSR_SPEED_10 ? 10 : 100;
+}
 
 static void
 startup_nic(void)
@@ -143,8 +162,71 @@ startup_nic(void)
   __amd64_outb(PORT(REG_COMMAND), CMD_RX_ENABLE | CMD_TX_ENABLE);
 
   /* Turn on the NIC */
-  __amd64_outb(iobase + REG_CONFIG1, 0);
+  __amd64_outb(PORT(REG_CONFIG1), 0);
+
+  /* Setup RX buffers */
+  rxbuf = kmalloc(RX_BUFFER_SIZE);
+  __amd64_outl(PORT(REG_RXBUF), vmm_get_phys((uintptr_t)rxbuf));
+  
+  /* Use 100mbit full duplex auto negoiation mode */
+  __amd64_outl(PORT(REG_BMCR), BMCR_SPEED 
+                              | BMCR_AUTO_NEGOTIATE 
+                              | BMCR_DUPLEX);
+
+  printk(KERN_INFO "RTL8139: Using 100mbit full "
+                   "duplex auto negoiation mode\n");
+
+  /* Enable control flow */
+  __amd64_outb(PORT(REG_MSR), MSR_RX_FLOW_CONTROL_ENABLE);
+
+  /* 
+   * Accept rtl8139 MAC match, multicast, and broadcasted packets.
+   * Also use max DMA transfer size and no FIFO threshold
+   */
+  __amd64_outl(PORT(REG_RXCFG), RXCFG_APM 
+                                | RXCFG_AM 
+                                | RXCFG_AB 
+                                | RXCFG_WRAP_INHIBIT 
+                                | RXCFG_MAX_DMA_UNLIMITED 
+                                | RXCFG_RBLN_32K 
+                                | RXCFG_FTH_NONE);
+
+  printk(KERN_INFO "RTL8139: Accepted packets: Mac match, Multicast, " 
+                   "Broadcasted\n");
+  printk(KERN_INFO "RTL8139: Use max DMA transfer "
+                   "size and no FIFO threshold\n");
+
+  /* 
+   * Set TX mode to use default retry count, 
+   * max DMA burst size and interframe gap time.
+   */
+  __amd64_outl(iobase + REG_TXCFG, TXCFG_TXRR_ZERO 
+                                   | TXCFG_MAX_DMA_1K 
+                                   | TXCFG_IFG11);
+
+  
+  /* Setup TX buffers */
+  for (uint32_t i = 0; i < TX_BUFFER_COUNT; ++i)
+  {
+    txbufs[i] = vmm_get_phys((uintptr_t)kmalloc(TX_BUFFER_SIZE));
+  }
+
+  /* Re-lock config registers to prevent mistakes */
+  __amd64_outb(PORT(REG_CFG9346), CFG9346_NONE);
+
+  /* Set IMR, ISR */
+  __amd64_outw(PORT(REG_IMR), INT_RXOK 
+                              | INT_RXERR 
+                              | INT_TXOK 
+                              | INT_TXERR 
+                              | INT_RX_BUFFER_OVERFLOW 
+                              | INT_LINK_CHANGE 
+                              | INT_RX_FIFO_OVERFLOW 
+                              | INT_LENGTH_CHANGE 
+                              | INT_SYSTEM_ERROR);
 }
+
+
 
 void
 rtl8139_init(void)
@@ -168,4 +250,13 @@ rtl8139_init(void)
 
   /* Startup the NIC */
   startup_nic();
+
+  if (link_up())
+  {
+    printk(KERN_INFO "RTL8139: Link up @%dmbps!\n", get_speed());
+  }
+  else
+  {
+    printk(KERN_INFO "RTL8139: Link down..\n");
+  }
 }
