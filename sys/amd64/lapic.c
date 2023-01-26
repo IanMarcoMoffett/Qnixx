@@ -6,6 +6,7 @@
 #include <amd64/lapic.h>
 #include <amd64/cpuid.h>
 #include <amd64/asm.h>
+#include <amd64/interrupts.h>
 #include <mm/vmm.h>
 #include <tty/console.h>
 
@@ -21,6 +22,7 @@
 
 static uintptr_t xapic_base = 0;
 static uint8_t x2apic_supported = 0;
+static uint8_t goto_vector = 0;
 
 static void
 xapic_write(uint32_t reg, uint64_t value)
@@ -113,6 +115,12 @@ lapic_send_ipi(uint8_t lapic_id, uint8_t vector, uint8_t shorthand)
   }
 }
 
+uint8_t
+lapic_get_goto_vector(void)
+{
+  return goto_vector;
+}
+
 void
 lapic_init(void)
 {
@@ -129,4 +137,5 @@ lapic_init(void)
   }
 
   enable_apic();
+  goto_vector = alloc_int_vector();
 }

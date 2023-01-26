@@ -10,5 +10,6 @@
 
 void lapic_init(void);
 void lapic_send_ipi(uint8_t lapic_id, uint8_t vector, uint8_t shorthand);
+uint8_t lapic_get_goto_vector(void);
 
 #endif

@@ -5,5 +5,6 @@
 
 void register_interrupt(uint8_t vector, void(*isr)(void* sf));
 void register_exception(uint8_t vector, void(*isr)(void* sf));
+uint8_t alloc_int_vector(void);
 
 #endif
