@@ -32,5 +32,6 @@ typedef	int32_t	  ssize_t;	/* Byte count or error */
 #endif
 
 typedef size_t uintptr_t;
+typedef size_t ptrdiff_t;
 
 #endif

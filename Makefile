@@ -15,6 +15,8 @@ OBJECTS=sys/kern_init.o 				\
 				sys/sync/mutex.o				\
 				sys/mm/pmm.o						\
 				sys/mm/vmm.o						\
+				sys/mm/tlsf.o						\
+				sys/mm/heap.o						\
 				sys/dev/video/fb.o			\
 				sys/dev/pci/pci.o				\
 				sys/tty/console.o 			\

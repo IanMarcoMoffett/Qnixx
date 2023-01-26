@@ -81,3 +81,9 @@ vmm_unmap_page(uintptr_t* pml4, uintptr_t virt)
   page_table[VIRT_TO_PT_INDEX(virt)] = 0;
   __amd64_flush_tlb_single(virt);
 }
+
+void* vmm_alloc_pages(size_t pages)
+{
+  uintptr_t ptr = pmm_alloc(pages);
+  return (void*)(ptr + VMM_HIGHER_HALF);
+}

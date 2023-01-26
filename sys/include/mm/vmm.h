@@ -40,4 +40,12 @@ void vmm_map_page(uintptr_t* pml4, uintptr_t virt, uintptr_t phys,
 
 void vmm_unmap_page(uintptr_t* pml4, uintptr_t virt);
 
+/*
+ *  Allocates n pages.
+ *  
+ *  @param pages: n.
+ */
+
+void* vmm_alloc_pages(size_t pages);
+
 #endif
