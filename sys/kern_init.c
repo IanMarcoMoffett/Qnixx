@@ -50,7 +50,6 @@ init(void)
   init_net();
   
   hpet_init();
-  init_usb();
 }
 
 __dead void

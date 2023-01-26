@@ -4,6 +4,5 @@
 #include <types.h>
 
 void init_net(void);
-void init_usb(void);
 
 #endif
