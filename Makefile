@@ -27,7 +27,8 @@ OBJECTS=sys/kern_init.o 				\
 				sys/libkern/bitmap.o
 
 ASMOBJS=sys/amd64/asm.o 			\
-				sys/amd64/tlbflush.o
+				sys/amd64/tlbflush.o	\
+				sys/amd64/cpuasm.o
 
 sbin/kernel.sys: $(OBJECTS) $(ASMOBJS)
 	mkdir -p sbin/

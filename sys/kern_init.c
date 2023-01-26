@@ -8,6 +8,7 @@
 #include <amd64/exceptions.h>
 #include <amd64/lapic.h>
 #include <amd64/ioapic.h>
+#include <amd64/cpu.h>
 #include <dev/video/fb.h>
 #include <tty/console.h>
 #include <mm/pmm.h>
@@ -26,6 +27,15 @@ init(void)
 {
   load_idt();
   init_exceptions();
+
+  if (__amd64_enable_sse() == 0)
+  {
+    printk(KERN_INFO "INIT: SSE enabled.\n");
+  }
+  else
+  {
+    printk(KERN_INFO "INIT: Could not enable SSE; not supported.\n");
+  }
 
   init_mm();
   acpi_init();

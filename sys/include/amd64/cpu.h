@@ -5,4 +5,11 @@
 
 void __amd64_for_each_core(void(*kroutine)(void* sf));
 
+/*
+ *  Attempts to enable SSE.
+ *  Returns zero on success.
+ */
+
+int __amd64_enable_sse(void);
+
 #endif
