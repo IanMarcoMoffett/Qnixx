@@ -26,3 +26,7 @@ __amd64_wrmsr:
   shl $32, %rdx
   wrmsr
   retq
+
+__amd64_halt:
+  cli
+  hlt

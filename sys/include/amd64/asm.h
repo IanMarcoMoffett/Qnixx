@@ -2,6 +2,7 @@
 #define _AMD64_ASM_H_
 
 #include <types.h>
+#include <cdefs.h>
 
 /*
  *  Returns the value in CR3.
@@ -23,5 +24,10 @@ uint64_t __amd64_rdmsr(uint32_t msr);
  *  Writes an MSR.
  */
 uint64_t __amd64_wrmsr(uint32_t msr, uint64_t value);
+
+/*
+ *  Halt the CPU.
+ */
+void __amd64_halt(void);
 
 #endif
