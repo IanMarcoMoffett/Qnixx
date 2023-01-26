@@ -39,7 +39,7 @@ acpi_query(const char* query)
     acpi_header_t* current = (acpi_header_t*)((uint64_t)rsdt->tables[i] + VMM_HIGHER_HALF);
     if (memcmp(current->signature, query, strlen(query)) == 0)
     {
-      return (void*)current;
+      return do_checksum(current) ? (void*)current : NULL;
     }
   }
 
