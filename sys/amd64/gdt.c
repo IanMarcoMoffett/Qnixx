@@ -1,3 +1,8 @@
+/*
+ *  Description: Global descriptor table.
+ *  Author(s): Ian Marco Moffett.
+ */
+
 #include <amd64/gdt.h>
 
 gdt_desc_t g_gdt[13] = {
