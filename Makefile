@@ -18,6 +18,7 @@ OBJECTS=sys/kern_init.o 				\
 				sys/mm/vmm.o						\
 				sys/mm/tlsf.o						\
 				sys/mm/heap.o						\
+				sys/fs/vfs.o						\
 				sys/dev/video/fb.o			\
 				sys/dev/timer/hpet.o		\
 				sys/dev/net/rtl8139.o		\

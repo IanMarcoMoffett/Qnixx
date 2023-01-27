@@ -17,6 +17,7 @@
 #include <mm/heap.h>
 #include <acpi/acpi.h>
 #include <dev/init.h>
+#include <fs/vfs.h>
 
 static void
 init_mm(void)
@@ -50,6 +51,7 @@ init(void)
   init_net();
   
   hpet_init();
+  vfs_init();
 }
 
 __dead void
