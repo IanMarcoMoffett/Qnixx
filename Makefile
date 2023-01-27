@@ -10,6 +10,7 @@ OBJECTS=sys/kern_init.o 				\
 				sys/amd64/lapic.o				\
 				sys/amd64/ioapic.o			\
 				sys/amd64/cpu.o					\
+				sys/amd64/smp.o					\
 				sys/amd64/io.o					\
 				sys/amd64/gdt.o					\
 				sys/amd64/tss.o					\

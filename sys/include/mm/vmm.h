@@ -3,6 +3,7 @@
 
 #include <types.h>
 #include <limine.h>
+#include <amd64/asm.h>
 
 extern volatile struct limine_hhdm_request g_hhdm_request;
 
@@ -17,6 +18,8 @@ extern volatile struct limine_hhdm_request g_hhdm_request;
 #define PAGE_SIZE 4096
 
 #define VMM_HIGHER_HALF (g_hhdm_request.response->offset)
+#define VMM_LOAD_PML4(pml4) \
+  __amd64_load_cr3((uintptr_t)pml4 - VMM_HIGHER_HALF);
 
 /*
  *  Maps a virtual address to

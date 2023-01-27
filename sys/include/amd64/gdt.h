@@ -5,6 +5,7 @@
 #include <types.h>
 #include <amd64/tss.h>
 
+#define GDT_TSS 0x9
 
 typedef struct
 {

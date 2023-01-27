@@ -6,7 +6,6 @@
 #include <mm/vmm.h>
 #include <mm/pmm.h>
 #include <amd64/tlbflush.h>
-#include <amd64/asm.h>
 #include <limine.h>
 #include <string.h>
 #include <lib/math.h>
