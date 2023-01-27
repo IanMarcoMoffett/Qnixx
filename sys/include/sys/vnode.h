@@ -70,6 +70,15 @@ typedef struct Vnode
   struct hashmap_s children;
   size_t n_children;
 } vnode_t;
+
+
+/* 
+ *  Helper macros.
+ */
+
+#define V_LOCK(vnode) mutex_acquire(&(vnode)->v_lock)
+#define V_UNLOCK(vnode) mutex_release(&(vnode)->v_lock)
+
 #endif      /* _KERNEL */
 
 /*
@@ -81,13 +90,6 @@ typedef struct Vnode
 #define V_ETERNALDEV  (1 << 1)      /* Device that is never destroyed */
 #define V_SYSTEM      (1 << 2)      /* Vnode is being used by kernel */
 #define V_MOUNTPOINT  (1 << 3)      /* Vnode is a mountpoint */
-
-/* 
- *  Helper macros.
- */
-
-#define V_LOCK(vnode) mutex_acquire(&(vnode)->v_lock)
-#define V_UNLOCK(vnode) mutex_release(&(vnode)->v_lock)
 
 __END_DECLS
 
