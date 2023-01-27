@@ -86,12 +86,14 @@ static gdtr_t gdtr = {
   .ptr = (uint64_t)&g_gdt
 };
 
+
+tss_desc_t* g_bsp_tss_desc = (tss_desc_t*)&g_gdt[0x9];
+
 void
 load_gdt(gdtr_t* gdtr)
 {
   __asm("lgdt %0" :: "m" (*gdtr));
 }
-
 
 void
 load_gdt_bsp(void)

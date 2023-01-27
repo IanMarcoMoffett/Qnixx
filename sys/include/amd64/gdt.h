@@ -3,6 +3,7 @@
 
 #include <cdefs.h>
 #include <types.h>
+#include <amd64/tss.h>
 
 
 typedef struct
@@ -22,6 +23,7 @@ typedef struct
 } __packed gdt_desc_t;
 
 extern gdt_desc_t g_gdt[13];
+extern tss_desc_t* g_bsp_tss_desc;
 
 void load_gdt(gdtr_t* gdtr);
 void load_gdt_bsp(void);

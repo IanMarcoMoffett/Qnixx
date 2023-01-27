@@ -10,6 +10,7 @@
 #include <amd64/ioapic.h>
 #include <amd64/cpu.h>
 #include <amd64/gdt.h>
+#include <amd64/tss.h>
 #include <dev/video/fb.h>
 #include <dev/timer/hpet.h>
 #include <tty/console.h>
@@ -48,9 +49,11 @@ init(void)
   lapic_init();
   
   heap_init();
-  init_net();
-  
+  load_tss_bsp();
+
+  init_net(); 
   hpet_init();
+
   vfs_init();
 }
 
