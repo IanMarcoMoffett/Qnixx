@@ -25,7 +25,7 @@ trap_entry:
 
   mov %rsp, %rdi
   call trap
-trap_end:
+trap_end: 
   pop %rdi
   pop %rsi
   pop %rbx

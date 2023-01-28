@@ -75,9 +75,11 @@ create_process(const char* name, uid_t user_id, gid_t group_id)
   /* Allocate a stack */
   head_thread->stack_base = (uintptr_t)kmalloc(0x500);
   assert(head_thread->stack_base != 0);
-
+    
+  /* Set other fields */
   head_thread->next = NULL;
   head_thread->parent = p;
+  head_thread->flags = THREAD_STARTUP;
 
   p->tail_thread = head_thread;
   p->thread_count = 1;
@@ -99,10 +101,13 @@ create_kernel_process(const char* name, void(*entry)(void))
 {
   process_t* p = create_process(name, 0, 0);
   trapframe_t* tf = &p->head_thread->tf;
-
+  
+  memzero(tf, sizeof(trapframe_t));
   tf->ss = 0x30;
   tf->cs = 0x28;
   tf->rflags = 0x202;
   tf->rip = (uintptr_t)entry;
+  tf->rsp = p->head_thread->stack_base + (0x500 - 1);
+
   return p;
 }

@@ -6,11 +6,19 @@
 #include <credentials.h>
 #include <limits.h>
 
+/*
+ *  Set if this is the first
+ *  on a core.
+ */
+
+#define THREAD_STARTUP   (1 << 0)
+
 struct Process;
 
 /*
  *  @tf: Trapframe.
  *  @stack_base: Base of the stack.
+ *  @flags: Thread flags.
  *  @parent: Parent process.
  *  @next: Pointer to next thread.
  */
@@ -19,6 +27,7 @@ typedef struct Thread
 {
   trapframe_t tf;
   uintptr_t stack_base;
+  uint16_t flags;
   struct Process* parent;
   struct Thread* next;
 } thread_t;

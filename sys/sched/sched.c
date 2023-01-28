@@ -4,6 +4,8 @@
 #include <amd64/smp.h>
 #include <amd64/lapic.h>
 #include <tty/console.h>
+#include <mm/vmm.h>
+#include <string.h>
 
 #define SCHED_DEBUG 1
 
@@ -20,6 +22,44 @@ sched_core(void)
   cpu_core_t* core = &g_corelist[current_core_idx];
   current_core_idx = (current_core_idx + 1) % smp_get_core_count();
   return core;
+}
+
+/*
+ *  Sets the running thread
+ *  in a process control block
+ *  to the next thread.
+ */
+
+static void
+next_thread(process_t* p)
+{
+  if (p->running_thread->next != NULL)
+  {
+    p->running_thread = p->running_thread->next;
+  }
+  else
+  {
+    p->running_thread = p->head_thread;
+  }
+}
+
+/*
+ *  Sets the running process
+ *  in the core descriptor
+ *  to the next.
+ */
+
+static void
+next_process(cpu_core_t* core)
+{
+  if (core->running_process->next != NULL)
+  {
+    core->running_process = core->running_process->next;
+  }
+  else
+  {
+    core->running_process = core->head_process;
+  }
 }
 
 /*
@@ -94,6 +134,14 @@ void
 sched_yield(trapframe_t* tf)
 {
   cpu_core_t* core = this_core();
+  process_t* current_process = core->running_process;
+  thread_t* current_thread = current_process->running_thread;
+
+  if (SCHED_DEBUG)
+  {
+    printk("Sched: Yielding thread (pid=%d)\n", core->running_process->pid);
+    printk("Sched: Halting..\n");
+  }
   
   /* 
    * Don't switch contexts if
@@ -103,15 +151,39 @@ sched_yield(trapframe_t* tf)
   if (core->flags & (P_EXEC_CRITICAL | P_IRQ))
   {
     return;
-  }
+  } 
 
-  if (SCHED_DEBUG)
+  if (!(current_thread->flags & THREAD_STARTUP))
   {
-    printk("Sched: Yielding thread (pid=%d)\n", core->running_process->pid);
-    printk("Sched: Halting..\n");
+    /*
+     *  Store the current context
+     *  in the Process Control Block (PCB),
+     *
+     *  switch to the next thread in the PCB
+     *  so when we are back we can execute the next
+     *  thread,
+     *
+     *  switch to the next process in the core descriptor.
+     *
+     *  NOTE: current_process and current_thread
+     *        will not actually point to the current
+     *        after this.
+     */
+    memcpy(&current_thread->tf, tf, sizeof(trapframe_t));
+    next_thread(current_process);
+    next_process(core);
+  }
+  else
+  {
+    current_thread->flags &= ~(THREAD_STARTUP);
   }
 
-  __asm("cli; hlt");
+  /* Copy the saved context into the trapframe */
+  memcpy(tf, &current_thread->tf, sizeof(trapframe_t));
+  
+  /* Switch address spaces and we are done */
+  VMM_LOAD_PML4(core->running_process->vaddrsp);
+  lapic_timer_oneshot(SCHED_QUANTUM_BASE);
 }
 
 __dead 
