@@ -69,7 +69,7 @@ init_core_desc(cpu_core_t* desc, uint8_t lapic_id)
   desc->lock = 0;
   desc->flags = 0;
   desc->running_process = NULL;
-  TAILQ_INIT(&desc->processq);
+  TAILQ_INIT(&desc->processq_head);
 
   desc->tss = kmalloc(sizeof(tss_entry_t));
   write_tss((tss_desc_t*)&desc->gdt[GDT_TSS],
