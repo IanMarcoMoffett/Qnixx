@@ -2,6 +2,7 @@
 #define _SCHED_PROCESS_H_
 
 #include <sys/types.h>
+#include <sys/queue.h>
 #include <amd64/asm.h>
 #include <credentials.h>
 #include <limits.h>
@@ -29,7 +30,7 @@ typedef struct Thread
   uintptr_t stack_base;
   uint16_t flags;
   struct Process* parent;
-  struct Thread* next;
+  TAILQ_ENTRY(Thread) threadq;
 } thread_t;
 
 /*
@@ -53,14 +54,13 @@ typedef struct Process
   char name[NAME_MAX];
   pid_t pid;
   user_t usr;
-
-  thread_t* tail_thread;
-  thread_t* head_thread;
+  
+  TAILQ_ENTRY(Process) runq;
+  TAILQ_HEAD(, Thread) threadq_head;
   thread_t* running_thread;
 
   size_t thread_count;
   uintptr_t* vaddrsp;
-  struct Process* next;
 } process_t;
 
 /*

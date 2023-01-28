@@ -6,10 +6,12 @@
 #include <tty/console.h>
 #include <mm/vmm.h>
 #include <string.h>
+#include <lib/assert.h>
 
 #define SCHED_DEBUG 1
 
 static size_t current_core_idx = 0;
+static mutex_t lock = 0;
 
 /*
  *  Returns a core descriptor.
@@ -24,90 +26,69 @@ sched_core(void)
   return core;
 }
 
+
 /*
- *  Sets the running thread
- *  in a process control block
- *  to the next thread.
+ *  Appends a thread to
+ *  the thread list.
  */
 
 static void
-next_thread(process_t* p)
+enqueue_thread(process_t* parent, thread_t* thread)
 {
-  if (p->running_thread->next != NULL)
-  {
-    p->running_thread = p->running_thread->next;
-  }
-  else
-  {
-    p->running_thread = p->head_thread;
-  }
+  TAILQ_INSERT_TAIL(&parent->threadq_head, thread, threadq);
+  ++parent->thread_count;
 }
 
 /*
- *  Sets the running process
- *  in the core descriptor
- *  to the next.
- */
-
-static void
-next_process(cpu_core_t* core)
-{
-  if (core->running_process->next != NULL)
-  {
-    core->running_process = core->running_process->next;
-  }
-  else
-  {
-    core->running_process = core->head_process;
-  }
-}
-
-/*
- *  Enqueues a process into a core.
- *
- *  @param p: Process to add.
+ *  Appends a process to 
+ *  the process list.
  */
 
 static void
 enqueue_process(process_t* p)
 {
-  /* Schedule a core to put the process on */
   cpu_core_t* core = sched_core();
+  TAILQ_INSERT_TAIL(&core->processq_head, p, runq);
 
-  mutex_acquire(&core->lock);
-  if (core->head_process == NULL)
+  if (core->running_process == NULL)
   {
-    core->head_process = p;
-    core->tail_process = p;
     core->running_process = p;
   }
-  else
-  {
-    core->tail_process->next = p;
-    core->tail_process = p;
-  }
-
-  mutex_release(&core->lock);
 }
 
 /*
- *  Enqueues a thread, meaning
- *  it adds a thread to the 
- *  process.
- *
- *  Basically what this does is simple..
- *  - Set the tail_thread's next field to `thread`.
- *  - Increment thread count.
- *
- *  @param p: Target process.
- *  @param thread: Thread to add.
+ *  Goes to the next process
+ *  and if there is no next
+ *  wrap around to the first.
  */
 
-__unused static void
-enqueue_thread(process_t* p, thread_t* thread)
+static void
+next_process(cpu_core_t* core)
 {
-  p->tail_thread->next = thread;
-  ++p->thread_count;
+  process_t* running = core->running_process;
+  core->running_process = TAILQ_NEXT(running, runq);
+
+  if (core->running_process == NULL)
+  {
+    core->running_process = TAILQ_FIRST(&core->processq_head);
+  }
+}
+
+/*
+ *  Same thing as next_process() but
+ *  for threads.
+ */
+
+static void
+next_thread(process_t* parent)
+{
+  thread_t* thread = parent->running_thread;
+  parent->running_thread = TAILQ_NEXT(thread, threadq);
+
+  if (parent->running_thread == NULL)
+  {
+    parent->running_thread = TAILQ_FIRST(&parent->threadq_head);
+  }
 }
 
 /*
@@ -115,7 +96,7 @@ enqueue_thread(process_t* p, thread_t* thread)
  */
 
 static inline void
-sched_begin(void)
+sched_begin_timer(void)
 {
   lapic_timer_calibrate();
   lapic_timer_oneshot(SCHED_QUANTUM_BASE);
@@ -126,7 +107,7 @@ idle(void)
 {
   for (;;)
   {
-    __asm("pause");
+    __asm("hlt");
   }
 }
 
@@ -134,66 +115,35 @@ void
 sched_yield(trapframe_t* tf)
 {
   cpu_core_t* core = this_core();
-  process_t* current_process = core->running_process;
-  thread_t* current_thread = current_process->running_thread;
+  process_t* running = core->running_process;
+  thread_t* thread = running->running_thread;
 
-  if (SCHED_DEBUG)
+  if (!(thread->flags & THREAD_STARTUP))
   {
-    printk("Sched: Yielding thread (pid=%d)\n", core->running_process->pid);
-    printk("Sched: Halting..\n");
-  }
-  
-  /* 
-   * Don't switch contexts if
-   * the processor is handling 
-   * an IRQ or executing critical code.
-   */
-  if (core->flags & (P_EXEC_CRITICAL | P_IRQ))
-  {
-    return;
-  } 
-
-  if (!(current_thread->flags & THREAD_STARTUP))
-  {
-    /*
-     *  Store the current context
-     *  in the Process Control Block (PCB),
-     *
-     *  switch to the next thread in the PCB
-     *  so when we are back we can execute the next
-     *  thread,
-     *
-     *  switch to the next process in the core descriptor.
-     *
-     *  NOTE: current_process and current_thread
-     *        will not actually point to the current
-     *        after this.
-     */
-    memcpy(&current_thread->tf, tf, sizeof(trapframe_t));
-    next_thread(current_process);
+    memcpy(&thread->tf, tf, sizeof(trapframe_t));
+    next_thread(running);
     next_process(core);
+
+    running = core->running_process;
+    thread = running->running_thread;
   }
   else
   {
-    current_thread->flags &= ~(THREAD_STARTUP);
+    thread->flags &= ~(THREAD_STARTUP);
   }
 
-  /* Copy the saved context into the trapframe */
-  memcpy(tf, &current_thread->tf, sizeof(trapframe_t));
-  
-  /* Switch address spaces and we are done */
-  VMM_LOAD_PML4(core->running_process->vaddrsp);
-  lapic_timer_oneshot(SCHED_QUANTUM_BASE);
+  memcpy(tf, &thread->tf, sizeof(trapframe_t));
 }
 
 __dead 
 void sched_start(void)
 {
   process_t* p = create_kernel_process("idle", idle);
+  p->running_thread->flags |= THREAD_STARTUP;
   enqueue_process(p);
-
+  
+  sched_begin_timer();
   __asm("sti");
-  sched_begin();
 
   for (;;)
   {

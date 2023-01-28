@@ -8,7 +8,7 @@
 #include <types.h>
 #include <cdefs.h>
 
-#define SCHED_QUANTUM_BASE 20
+#define SCHED_QUANTUM_BASE 50
 
 /*
  *  Set if processor is executing
@@ -44,8 +44,7 @@ typedef struct
   tss_entry_t* tss;
 
   /* Process information */
-  process_t* head_process;
-  process_t* tail_process;
+  TAILQ_HEAD(, Process) processq_head;
   process_t* running_process;
 } cpu_core_t;
 

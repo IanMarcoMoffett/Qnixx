@@ -67,24 +67,18 @@ create_process(const char* name, uid_t user_id, gid_t group_id)
   /* Create a new process */
   process_t* p = kmalloc(sizeof(process_t));
   assert(p != NULL);
+  
+  /* Initialize the thread queue */
+  TAILQ_INIT(&p->threadq_head);
+  
+  /* Create the main thread */
+  thread_t* main_thread = kmalloc(sizeof(thread_t));
+  main_thread->stack_base = (uintptr_t)kmalloc(0x500);
+  main_thread->parent = p;
 
-  /* Set the head_thread */
-  p->head_thread = kmalloc(sizeof(thread_t));
-  thread_t* head_thread = p->head_thread;
-
-  /* Allocate a stack */
-  head_thread->stack_base = (uintptr_t)kmalloc(0x500);
-  assert(head_thread->stack_base != 0);
-    
-  /* Set other fields */
-  head_thread->next = NULL;
-  head_thread->parent = p;
-  head_thread->flags = THREAD_STARTUP;
-
-  p->tail_thread = head_thread;
-  p->thread_count = 1;
-  p->running_thread = head_thread;
-  p->next = NULL;
+  /* Push the new thread */
+  TAILQ_INSERT_TAIL(&p->threadq_head, main_thread, threadq);
+  p->running_thread = main_thread;
 
   /* Set the IDs */
   p->usr.uid = user_id;
@@ -100,14 +94,14 @@ process_t*
 create_kernel_process(const char* name, void(*entry)(void))
 {
   process_t* p = create_process(name, 0, 0);
-  trapframe_t* tf = &p->head_thread->tf;
+  thread_t* head_thread = TAILQ_FIRST(&p->threadq_head);
+  trapframe_t* tf = &head_thread->tf;
   
   memzero(tf, sizeof(trapframe_t));
   tf->ss = 0x30;
   tf->cs = 0x28;
   tf->rflags = 0x202;
   tf->rip = (uintptr_t)entry;
-  tf->rsp = p->head_thread->stack_base + (0x500 - 1);
-
+  tf->rsp = head_thread->stack_base + (0x500 - 1);
   return p;
 }
