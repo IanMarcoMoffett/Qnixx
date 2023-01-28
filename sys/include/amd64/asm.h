@@ -43,4 +43,33 @@ void __amd64_hlt(void);
 
 void __amd64_hlt_isr(void* sf);
 
+
+typedef struct {
+  int64_t rdi;
+  int64_t rsi;
+  int64_t rbx;
+  int64_t rdx;
+  int64_t rcx;
+  int64_t rax;
+  int64_t r8;
+  int64_t r9;
+  int64_t r10;
+  int64_t r11;
+  int64_t r12;
+  int64_t r13;
+  int64_t r14;
+  int64_t r15;
+
+  uint64_t fs;
+  uint64_t gs;
+
+  /* Other information */
+  uint64_t trapno;
+  uint64_t rip;
+  uint16_t cs;
+  uint64_t rflags;
+  uint64_t rsp;
+  uint16_t ss;
+} trapframe_t;
+
 #endif
