@@ -21,7 +21,7 @@ struct Process;
  *  @stack_base: Base of the stack.
  *  @flags: Thread flags.
  *  @parent: Parent process.
- *  @next: Pointer to next thread.
+ *  @threadq: Actual thread queue.
  */
 
 typedef struct Thread
@@ -42,8 +42,8 @@ typedef struct Thread
  *  @name: Name of the process.
  *  @pid: Process ID.
  *  @usr: Some user information.
- *  @tail_thread: End of thread queue.
- *  @head_thread: Start of thread queue.
+ *  @runq: Actual process queue.
+ *  @threadq_head: List of threads.
  *  @running_thread: Currently running thread.
  *  @thread_count: Number of threads (1 or higher).
  *  @vaddrsp: PML4 paging structure virtual address.
@@ -69,7 +69,6 @@ typedef struct Process
  *  
  *  @param name: Name of the process.
  *  @param entry: Entrypoint of process.
- *  @param show: 1 if should be added to process list.
  */
 
 process_t* create_kernel_process(const char* name, void(*entry)(void));
