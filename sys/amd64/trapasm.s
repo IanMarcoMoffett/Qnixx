@@ -1,3 +1,8 @@
+/*
+ *  Description: Trap handler.
+ *  Author(s): Ian Marco Moffett.
+ */
+
 .globl trap_entry
 
 trap_entry:

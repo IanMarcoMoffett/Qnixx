@@ -1,3 +1,8 @@
+/*
+ *  Description: Interrupt service routines.
+ *  Author(s): Ian Marco Moffett.
+ */
+
 .globl __lapic_timer_isr
 
 .section .text
