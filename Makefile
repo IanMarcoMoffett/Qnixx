@@ -17,6 +17,7 @@ OBJECTS=sys/kern_init.o 					\
 				sys/acpi/acpi.o						\
 				sys/sync/mutex.o					\
 				sys/sched/process.o				\
+				sys/sched/sched.o					\
 				sys/mm/pmm.o							\
 				sys/mm/vmm.o							\
 				sys/mm/tlsf.o							\

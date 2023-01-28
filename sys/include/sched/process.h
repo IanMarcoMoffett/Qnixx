@@ -31,6 +31,8 @@ typedef struct Thread
  *  @tail_thread: End of thread queue.
  *  @head_thread: Start of thread queue.
  *  @running_thread: Currently running thread.
+ *  @thread_count: Number of threads (1 or higher).
+ *  @vaddrsp: PML4 paging structure virtual address.
  */
 
 typedef struct

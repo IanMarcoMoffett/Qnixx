@@ -1,6 +1,7 @@
 #ifndef _SCHED_H_
 #define _SCHED_H_
 
+#include <sched/process.h>
 #include <amd64/gdt.h>
 #include <amd64/tss.h>
 #include <sync/mutex.h>
