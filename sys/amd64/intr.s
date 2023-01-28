@@ -7,7 +7,7 @@
 
 .section .text
 __lapic_timer_isr:
-  call irq_enter      /* The scheduler will call irq_exit() */
+  call irq_enter
   push %rbp
   push %rax
   push %rdi
@@ -27,6 +27,7 @@ __lapic_timer_isr:
   pop %rax
   pop %rbp
   push (timer_vector)
+  call irq_exit
   jmp trap_entry
 
 .section .data

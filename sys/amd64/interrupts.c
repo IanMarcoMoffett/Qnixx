@@ -7,6 +7,7 @@
 #include <amd64/interrupts.h>
 #include <amd64/idt.h>
 #include <amd64/ioapic.h>
+#include <acpi/acpi.h>
 
 void 
 register_interrupt(uint8_t vector, void(*isr)(void* sf))
@@ -24,7 +25,7 @@ void
 register_irq(uint8_t irq, void(*isr)(void* sf))
 {
   register_interrupt(0x20 + irq, isr);
-  ioapic_set_entry(remap_irq(irq), 0x20 + irq);
+  ioapic_set_entry(acpi_remap_irq(irq), 0x20 + irq);
 }
 
 uint8_t

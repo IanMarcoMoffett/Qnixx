@@ -21,6 +21,12 @@ uintptr_t __amd64_read_cr3(void);
 void __amd64_load_cr3(uintptr_t val);
 
 /*
+ *  Loads a value into CR8.
+ */
+
+void __amd64_load_cr8(size_t value);
+
+/*
  *  Reads an MSR.
  */
 

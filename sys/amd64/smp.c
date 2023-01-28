@@ -1,5 +1,6 @@
 #include <amd64/smp.h>
 #include <amd64/idt.h>
+#include <amd64/lapic.h>
 #include <tty/console.h>
 #include <mm/heap.h>
 #include <mm/vmm.h>
@@ -42,6 +43,10 @@ ap_entry(struct limine_smp_info* info)
   load_gdt(g_corelist[core_idx].gdtr); 
   load_tss();
   
+  /* Setup the local APIC */
+  lapic_init();
+  lapic_timer_calibrate();
+  
   /* Release the AP lock */
   mutex_release(&ap_lock);
 
@@ -63,6 +68,9 @@ init_core_desc(cpu_core_t* desc, uint8_t lapic_id)
   desc->gdtr->ptr = (uint64_t)desc->gdt;
   desc->lock = 0;
   desc->flags = 0;
+  desc->tail_process = NULL;
+  desc->head_process = NULL;
+  desc->running_process = NULL;
 
   desc->tss = kmalloc(sizeof(tss_entry_t));
   write_tss((tss_desc_t*)&desc->gdt[GDT_TSS],

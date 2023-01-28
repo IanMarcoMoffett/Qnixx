@@ -11,10 +11,10 @@
 void lapic_init(void);
 void lapic_send_ipi(uint8_t lapic_id, uint8_t vector, uint8_t shorthand);
 void lapic_send_eoi(void);
-uint8_t lapic_read_id(void);
+uint32_t lapic_read_id(void);
 uint8_t lapic_get_goto_vector(void);
 uint8_t lapic_get_timer_vector(void);
-void lapic_calibrate_timer(void);
+void lapic_timer_calibrate(void);
 void lapic_timer_oneshot(size_t ms);
 
 #endif
