@@ -3,7 +3,7 @@
 
 #include <types.h>
 
-#define HEAP_SIZE_PAGES 13
+#define HEAP_SIZE_PAGES 30
 
 
 void heap_init(void);
