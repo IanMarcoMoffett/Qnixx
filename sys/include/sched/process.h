@@ -6,9 +6,12 @@
 #include <credentials.h>
 #include <limits.h>
 
+struct Process;
+
 /*
  *  @tf: Trapframe.
  *  @stack_base: Base of the stack.
+ *  @parent: Parent process.
  *  @next: Pointer to next thread.
  */
 
@@ -16,6 +19,7 @@ typedef struct Thread
 {
   trapframe_t tf;
   uintptr_t stack_base;
+  struct Process* parent;
   struct Thread* next;
 } thread_t;
 
@@ -35,7 +39,7 @@ typedef struct Thread
  *  @vaddrsp: PML4 paging structure virtual address.
  */
 
-typedef struct
+typedef struct Process
 {
   char name[NAME_MAX];
   pid_t pid;

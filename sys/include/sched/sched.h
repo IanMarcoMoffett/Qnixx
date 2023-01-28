@@ -8,6 +8,8 @@
 #include <types.h>
 #include <cdefs.h>
 
+#define SCHED_QUANTUM_BASE 20
+
 /*
  *  Set if processor is executing
  *  critical code.
@@ -29,7 +31,8 @@
 
 typedef struct
 {
-  uint8_t lapic_id;
+  size_t lapic_freq;
+  uint32_t lapic_id;
   uint16_t flags;
   mutex_t lock;
 
@@ -39,8 +42,14 @@ typedef struct
 
   /* Task state segment */
   tss_entry_t* tss;
+
+  /* Process information */
+  process_t* head_process;
+  process_t* tail_process;
+  process_t* running_process;
 } cpu_core_t;
 
+void sched_yield(trapframe_t* tf);
 __dead void sched_start(void);
 
 #endif

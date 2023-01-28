@@ -14,6 +14,7 @@ OBJECTS=sys/kern_init.o 					\
 				sys/amd64/io.o						\
 				sys/amd64/gdt.o						\
 				sys/amd64/tss.o						\
+				sys/amd64/trap.o					\
 				sys/acpi/acpi.o						\
 				sys/sync/mutex.o					\
 				sys/sched/process.o				\
@@ -36,7 +37,9 @@ OBJECTS=sys/kern_init.o 					\
 ASMOBJS=sys/amd64/asm.o 			\
 				sys/amd64/tlbflush.o	\
 				sys/amd64/cpuasm.o		\
-				sys/amd64/tssasm.o
+				sys/amd64/tssasm.o		\
+				sys/amd64/intr.o			\
+				sys/amd64/trapasm.o
 
 sbin/kernel.sys: $(OBJECTS) $(ASMOBJS)
 	mkdir -p sbin/

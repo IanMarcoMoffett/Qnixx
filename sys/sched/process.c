@@ -6,7 +6,13 @@
 #include <string.h>
 
 static bitmap_t pid_bitmap = NULL;
-static size_t pid_bitmap_bytes = 0;
+static size_t pid_bitmap_bytes = 1;
+
+static void
+init_pid_bitmap(void)
+{
+  pid_bitmap = kmalloc(sizeof(uint8_t));
+}
 
 /*
  *  Allocates a process ID.
@@ -16,6 +22,11 @@ static size_t pid_bitmap_bytes = 0;
 static pid_t
 alloc_pid(void)
 {
+  if (pid_bitmap == NULL)
+  {
+    init_pid_bitmap();
+  }
+
   size_t i = 1;
 
   while (1)
@@ -55,11 +66,22 @@ create_process(const char* name, uid_t user_id, gid_t group_id)
 
   /* Create a new process */
   process_t* p = kmalloc(sizeof(process_t));
+  assert(p != NULL);
+
+  /* Set the head_thread */
   p->head_thread = kmalloc(sizeof(thread_t));
-  p->head_thread->stack_base = (uintptr_t)kmalloc(0x500);
-  p->tail_thread = p->head_thread;
+  thread_t* head_thread = p->head_thread;
+
+  /* Allocate a stack */
+  head_thread->stack_base = (uintptr_t)kmalloc(0x500);
+  assert(head_thread->stack_base != 0);
+
+  head_thread->next = NULL;
+  head_thread->parent = p;
+
+  p->tail_thread = head_thread;
   p->thread_count = 1;
-  p->running_thread = p->head_thread;
+  p->running_thread = head_thread;
 
   /* Set the IDs */
   p->usr.uid = user_id;

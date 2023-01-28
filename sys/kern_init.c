@@ -20,6 +20,7 @@
 #include <acpi/acpi.h>
 #include <dev/init.h>
 #include <fs/vfs.h>
+#include <sched/sched.h>
 
 static void
 init_mm(void)
@@ -65,6 +66,9 @@ _start(void)
   fb_init();
   printk(KERN_INFO "INIT: Booting..\n");
   init();
+  
+  /* Start the scheduler */
+  sched_start();
 
   for (;;)
   {
