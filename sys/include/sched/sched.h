@@ -8,7 +8,7 @@
 #include <types.h>
 #include <cdefs.h>
 
-#define SCHED_QUANTUM_BASE 50
+#define SCHED_QUANTUM_BASE 20
 
 /*
  *  Set if processor is executing

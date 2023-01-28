@@ -26,10 +26,10 @@ sched_core(void)
   return core;
 }
 
-
 /*
- *  Appends a thread to
- *  the thread list.
+ *  Pushes a thread to a
+ *  process control block's
+ *  threadlist.
  */
 
 static void
@@ -53,6 +53,7 @@ enqueue_process(process_t* p)
   if (core->running_process == NULL)
   {
     core->running_process = p;
+    p->running_thread->flags |= THREAD_STARTUP;
   }
 }
 
@@ -107,6 +108,21 @@ idle(void)
 {
   for (;;)
   {
+    mutex_acquire(&lock);
+    printk("SCHED: This is %s!\n", __func__);
+    mutex_release(&lock);
+    __asm("hlt");
+  }
+}
+
+__dead static void
+test_func(void)
+{
+  for (;;)
+  {
+    mutex_acquire(&lock);
+    printk("SCHED: Yo, this is %s!\n", __func__);
+    mutex_release(&lock);
     __asm("hlt");
   }
 }
@@ -133,14 +149,18 @@ sched_yield(trapframe_t* tf)
   }
 
   memcpy(tf, &thread->tf, sizeof(trapframe_t));
+  sched_begin_timer();
 }
 
 __dead 
 void sched_start(void)
 {
+  /* Create a process `p` */
   process_t* p = create_kernel_process("idle", idle);
-  p->running_thread->flags |= THREAD_STARTUP;
   enqueue_process(p);
+
+  thread_t* t = process_create_thread(p, test_func);
+  enqueue_thread(p, t);
   
   sched_begin_timer();
   __asm("sti");

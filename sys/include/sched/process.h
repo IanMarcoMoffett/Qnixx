@@ -73,4 +73,16 @@ typedef struct Process
 
 process_t* create_kernel_process(const char* name, void(*entry)(void));
 
+/*
+ *  Attempts to create a thread.
+ *  
+ *  NOTE: Does not enqueue the
+ *        thread.
+ *
+ *  @param parent: Parent process.
+ *  @param entry: Entrypoint of thread.
+ */
+
+thread_t* process_create_thread(process_t* parent, void(*entry)(void));
+
 #endif
