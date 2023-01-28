@@ -25,13 +25,15 @@ sched_core(void)
 /*
  *  Enqueues a process into a core.
  *
- *  @param core: Target core.
  *  @param p: Process to add.
  */
 
 static void
-enqueue_process(cpu_core_t* core, process_t* p)
+enqueue_process(process_t* p)
 {
+  /* Schedule a core to put the process on */
+  cpu_core_t* core = sched_core();
+
   mutex_acquire(&core->lock);
   if (core->head_process == NULL)
   {
@@ -61,15 +63,11 @@ enqueue_process(cpu_core_t* core, process_t* p)
  *  @param thread: Thread to add.
  */
 
-static void
+__unused static void
 enqueue_thread(process_t* p, thread_t* thread)
 {
   p->tail_thread->next = thread;
   ++p->thread_count;
-
-  /* Schedule a core to put the process on */
-  cpu_core_t* core = sched_core();
-  enqueue_process(core, p);
 }
 
 /*
@@ -120,7 +118,7 @@ __dead
 void sched_start(void)
 {
   process_t* p = create_kernel_process("idle", idle);
-  enqueue_thread(p, p->head_thread);
+  enqueue_process(p);
 
   __asm("sti");
   sched_begin();
