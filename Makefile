@@ -3,32 +3,33 @@ all: stand/limine sbin/kernel.sys
 
 include config.mk
 
-OBJECTS=sys/kern_init.o 				\
-				sys/amd64/idt.o					\
-				sys/amd64/interrupts.o	\
-				sys/amd64/exceptions.o	\
-				sys/amd64/lapic.o				\
-				sys/amd64/ioapic.o			\
-				sys/amd64/cpu.o					\
-				sys/amd64/smp.o					\
-				sys/amd64/io.o					\
-				sys/amd64/gdt.o					\
-				sys/amd64/tss.o					\
-				sys/acpi/acpi.o					\
-				sys/sync/mutex.o				\
-				sys/mm/pmm.o						\
-				sys/mm/vmm.o						\
-				sys/mm/tlsf.o						\
-				sys/mm/heap.o						\
-				sys/fs/vfs.o						\
-				sys/dev/video/fb.o			\
-				sys/dev/timer/hpet.o		\
-				sys/dev/net/rtl8139.o		\
-				sys/dev/pci/pci.o				\
-				sys/dev/init.o					\
-				sys/tty/console.o 			\
-				sys/tty/font.o 					\
-				sys/libkern/string.o		\
+OBJECTS=sys/kern_init.o 					\
+				sys/amd64/idt.o						\
+				sys/amd64/interrupts.o		\
+				sys/amd64/exceptions.o		\
+				sys/amd64/lapic.o					\
+				sys/amd64/ioapic.o				\
+				sys/amd64/cpu.o						\
+				sys/amd64/smp.o						\
+				sys/amd64/io.o						\
+				sys/amd64/gdt.o						\
+				sys/amd64/tss.o						\
+				sys/acpi/acpi.o						\
+				sys/sync/mutex.o					\
+				sys/sched/process.o				\
+				sys/mm/pmm.o							\
+				sys/mm/vmm.o							\
+				sys/mm/tlsf.o							\
+				sys/mm/heap.o							\
+				sys/fs/vfs.o							\
+				sys/dev/video/fb.o				\
+				sys/dev/timer/hpet.o			\
+				sys/dev/net/rtl8139.o			\
+				sys/dev/pci/pci.o					\
+				sys/dev/init.o						\
+				sys/tty/console.o 				\
+				sys/tty/font.o 						\
+				sys/libkern/string.o			\
 				sys/libkern/bitmap.o
 
 ASMOBJS=sys/amd64/asm.o 			\
