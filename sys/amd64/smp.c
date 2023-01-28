@@ -15,6 +15,7 @@ static volatile struct limine_smp_request smp_req = {
 
 static struct limine_smp_response* smp_resp = NULL;
 static mutex_t ap_lock = 0;
+static mutex_t this_core_lock = 0;
 static size_t core_idx = 0;
 
 /* CPU core list */
@@ -60,10 +61,28 @@ init_core_desc(cpu_core_t* desc, uint8_t lapic_id)
   desc->gdtr = kmalloc(sizeof(gdtr_t));
   desc->gdtr->limit = sizeof(g_gdt) - 1;
   desc->gdtr->ptr = (uint64_t)desc->gdt;
+  desc->lock = 0;
+  desc->flags = 0;
 
   desc->tss = kmalloc(sizeof(tss_entry_t));
   write_tss((tss_desc_t*)&desc->gdt[GDT_TSS],
             desc->tss);
+}
+
+cpu_core_t* this_core(void)
+{
+  mutex_acquire(&this_core_lock);
+  for (size_t i = 0; i < smp_resp->cpu_count; ++i)
+  {
+    if (g_corelist[i].lapic_id == lapic_read_id())
+    {
+      mutex_release(&this_core_lock);
+      return &g_corelist[i];
+    }
+  }
+
+  mutex_release(&this_core_lock);
+  return NULL;
 }
 
 void
