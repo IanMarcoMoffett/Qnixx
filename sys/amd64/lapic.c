@@ -6,9 +6,11 @@
 #include <amd64/lapic.h>
 #include <amd64/cpuid.h>
 #include <amd64/asm.h>
+#include <amd64/smp.h>
 #include <amd64/interrupts.h>
 #include <mm/vmm.h>
 #include <tty/console.h>
+#include <dev/timer/hpet.h>
 
 #define is_on_bsp() (__amd64_rdmsr(IA32_APIC) & (1 << 8))
 
@@ -21,11 +23,17 @@
 #define LAPIC_ICR1        0x310
 #define LAPIC_SELF_IPI    0x3F0
 #define LAPIC_EOI         0x0B0
+#define LAPIC_TIMER_LVT   0x320
+#define LAPIC_TIMER_CNT   0x390
+#define LAPIC_TIMER_INIT  0x380
+#define LAPIC_TIMER_DIV   0x3E0
 #define IPI_LEVEL_ASSERT  (1 << 14)
 
 static uintptr_t xapic_base = 0;
 static uint8_t x2apic_supported = 0;
+
 static uint8_t goto_vector = 0;
+static uint8_t timer_vector = 0;
 
 static void
 xapic_write(uint32_t reg, uint64_t value)
@@ -118,6 +126,34 @@ lapic_send_ipi(uint8_t lapic_id, uint8_t vector, uint8_t shorthand)
   }
 }
 
+void
+lapic_calibrate_timer(void)
+{
+  xapic_write(LAPIC_TIMER_DIV, 0x3);
+  xapic_write(LAPIC_TIMER_LVT, 0xFF | (1 << 16));
+  xapic_write(LAPIC_TIMER_INIT, (uint32_t)-1);
+  hpet_sleep(10);
+
+  this_core()->lapic_freq = (((uint32_t)-1) - xapic_read(LAPIC_TIMER_CNT)) / 10ULL;
+  xapic_write(LAPIC_TIMER_INIT, 0);
+  xapic_write(LAPIC_TIMER_LVT, (1 << 16));
+}
+
+
+void
+lapic_timer_oneshot(size_t ms)
+{
+  /* Stop the timer */
+  xapic_write(LAPIC_TIMER_INIT, 0);
+  xapic_write(LAPIC_TIMER_LVT, (1 << 16));
+
+  /* Setup regs */
+  xapic_write(LAPIC_TIMER_LVT, (xapic_read(LAPIC_TIMER_LVT) & ~(3 << 17)));
+  xapic_write(LAPIC_TIMER_LVT, (xapic_read(LAPIC_TIMER_LVT) & 0xFFFFFF00) | timer_vector);
+  xapic_write(LAPIC_TIMER_DIV, 0x3);
+  xapic_write(LAPIC_TIMER_INIT, this_core()->lapic_freq * ms);
+  xapic_write(LAPIC_TIMER_LVT, xapic_read(LAPIC_TIMER_LVT) & ~(1 << 16));
+}
 
 uint8_t
 lapic_read_id(void)
@@ -130,6 +166,12 @@ void
 lapic_send_eoi(void)
 {
   xapic_write(LAPIC_EOI, 0);
+}
+
+uint8_t
+lapic_get_timer_vector(void)
+{
+  return timer_vector;
 }
 
 uint8_t
@@ -154,5 +196,8 @@ lapic_init(void)
   }
 
   enable_apic();
+
   goto_vector = alloc_int_vector();
+  timer_vector = alloc_int_vector();
+  register_interrupt(timer_vector, __lapic_timer_isr);
 }
