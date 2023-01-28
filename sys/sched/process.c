@@ -82,6 +82,7 @@ create_process(const char* name, uid_t user_id, gid_t group_id)
   p->tail_thread = head_thread;
   p->thread_count = 1;
   p->running_thread = head_thread;
+  p->next = NULL;
 
   /* Set the IDs */
   p->usr.uid = user_id;

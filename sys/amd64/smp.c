@@ -77,7 +77,8 @@ init_core_desc(cpu_core_t* desc, uint8_t lapic_id)
             desc->tss);
 }
 
-cpu_core_t* this_core(void)
+cpu_core_t*
+this_core(void)
 {
   mutex_acquire(&this_core_lock);
   for (size_t i = 0; i < smp_resp->cpu_count; ++i)
@@ -91,6 +92,13 @@ cpu_core_t* this_core(void)
 
   mutex_release(&this_core_lock);
   return NULL;
+}
+
+
+size_t
+smp_get_core_count(void)
+{
+  return smp_resp->cpu_count;
 }
 
 void

@@ -51,6 +51,7 @@ typedef struct Process
 
   size_t thread_count;
   uintptr_t* vaddrsp;
+  struct Process* next;
 } process_t;
 
 /*
