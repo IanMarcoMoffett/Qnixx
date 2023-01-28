@@ -14,6 +14,8 @@
 
 #define IA32_APIC         0x1B
 #define IA32_X2APIC_BASE  0x800
+
+#define LAPIC_ID          0x020
 #define LAPIC_SVR         0x0F0
 #define LAPIC_ICR0        0x300
 #define LAPIC_ICR1        0x310
@@ -116,6 +118,13 @@ lapic_send_ipi(uint8_t lapic_id, uint8_t vector, uint8_t shorthand)
   }
 }
 
+
+uint8_t
+lapic_read_id(void)
+{
+  uint8_t shift = x2apic_supported ? 0 : 24;
+  return xapic_read(LAPIC_ID) >> shift;
+}
 
 void
 lapic_send_eoi(void)
